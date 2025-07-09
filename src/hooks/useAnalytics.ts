@@ -1,37 +1,40 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
-import { PreorderClick, Preorder, ServiceStats, DailyStats } from '@/types/database'
+import { Preorder, ServiceStats, DailyStats } from '@/types/database'
 
-export const useAnalytics = () => {
+export const useAnalytics = (selectedService: string = 'all') => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [serviceStats, setServiceStats] = useState<ServiceStats[]>([])
   const [dailyStats, setDailyStats] = useState<DailyStats[]>([])
   const [recentPreorders, setRecentPreorders] = useState<Preorder[]>([])
 
-  useEffect(() => {
-    fetchAnalytics()
-  }, [])
-
-  const fetchAnalytics = async () => {
+  const fetchAnalytics = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
 
       // 서비스별 통계 가져오기
-      const { data: clicks, error: clicksError } = await supabase
-        .from('preorder_clicks')
-        .select('service')
+      let clicksQuery = supabase.from('preorder_clicks').select('service')
+      let preordersQuery = supabase.from('preorders').select('service, marketing_opt_in')
+      
+      // 선택된 서비스가 'all'이 아닌 경우 필터 적용
+      if (selectedService !== 'all') {
+        clicksQuery = clicksQuery.eq('service', selectedService)
+        preordersQuery = preordersQuery.eq('service', selectedService)
+      }
 
-      const { data: preorders, error: preordersError } = await supabase
-        .from('preorders')
-        .select('service, marketing_opt_in')
+      const { data: clicks, error: clicksError } = await clicksQuery
+      const { data: preorders, error: preordersError } = await preordersQuery
 
       if (clicksError) throw clicksError
       if (preordersError) throw preordersError
 
       // 서비스별 통계 계산
-      const services = ['posture', 'reading', 'worktracker']
+      const services = selectedService === 'all' 
+        ? ['posture', 'reading', 'worktracker']
+        : [selectedService]
+        
       const stats = services.map(service => {
         const serviceClicks = clicks?.filter(c => c.service === service).length || 0
         const servicePreorders = preorders?.filter(p => p.service === service).length || 0
@@ -53,15 +56,24 @@ export const useAnalytics = () => {
       const thirtyDaysAgo = new Date()
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
-      const { data: dailyClicks, error: dailyClicksError } = await supabase
+      let dailyClicksQuery = supabase
         .from('preorder_clicks')
-        .select('clicked_at')
+        .select('clicked_at, service')
         .gte('clicked_at', thirtyDaysAgo.toISOString())
 
-      const { data: dailyPreorders, error: dailyPreordersError } = await supabase
+      let dailyPreordersQuery = supabase
         .from('preorders')
-        .select('created_at')
+        .select('created_at, service')
         .gte('created_at', thirtyDaysAgo.toISOString())
+
+      // 선택된 서비스가 'all'이 아닌 경우 필터 적용
+      if (selectedService !== 'all') {
+        dailyClicksQuery = dailyClicksQuery.eq('service', selectedService)
+        dailyPreordersQuery = dailyPreordersQuery.eq('service', selectedService)
+      }
+
+      const { data: dailyClicks, error: dailyClicksError } = await dailyClicksQuery
+      const { data: dailyPreorders, error: dailyPreordersError } = await dailyPreordersQuery
 
       if (dailyClicksError) throw dailyClicksError
       if (dailyPreordersError) throw dailyPreordersError
@@ -104,11 +116,18 @@ export const useAnalytics = () => {
       setDailyStats(dailyStatsArray)
 
       // 최근 사전예약자 가져오기
-      const { data: recent, error: recentError } = await supabase
+      let recentQuery = supabase
         .from('preorders')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(10)
+
+      // 선택된 서비스가 'all'이 아닌 경우 필터 적용
+      if (selectedService !== 'all') {
+        recentQuery = recentQuery.eq('service', selectedService)
+      }
+
+      const { data: recent, error: recentError } = await recentQuery
 
       if (recentError) throw recentError
       setRecentPreorders(recent || [])
@@ -118,7 +137,11 @@ export const useAnalytics = () => {
     } finally {
       setLoading(false)
     }
-  }
+  }, [selectedService])
+
+  useEffect(() => {
+    fetchAnalytics()
+  }, [fetchAnalytics])
 
   return {
     loading,

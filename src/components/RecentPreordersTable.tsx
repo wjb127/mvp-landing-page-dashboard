@@ -5,13 +5,31 @@ import { Preorder } from '@/types/database'
 
 interface RecentPreordersTableProps {
   data: Preorder[]
+  selectedService?: string
 }
 
-export const RecentPreordersTable = ({ data }: RecentPreordersTableProps) => {
+const getServiceDisplayName = (service: string) => {
+  const serviceNames: { [key: string]: string } = {
+    'posture': '자세 교정',
+    'reading': '독해 훈련',
+    'worktracker': '업무 트래커'
+  }
+  return serviceNames[service] || service
+}
+
+export const RecentPreordersTable = ({ data, selectedService = 'all' }: RecentPreordersTableProps) => {
+  const tableTitle = selectedService === 'all' 
+    ? '최근 사전예약자' 
+    : `${getServiceDisplayName(selectedService)} 최근 사전예약자`
+
+  const emptyMessage = selectedService === 'all'
+    ? '아직 사전예약자가 없습니다.'
+    : `${getServiceDisplayName(selectedService)} 서비스의 사전예약자가 없습니다.`
+
   return (
     <div className="bg-white rounded-lg shadow">
       <div className="px-6 py-4 border-b border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900">최근 사전예약자</h3>
+        <h3 className="text-lg font-semibold text-gray-900">{tableTitle}</h3>
       </div>
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
@@ -39,7 +57,7 @@ export const RecentPreordersTable = ({ data }: RecentPreordersTableProps) => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                    {preorder.service}
+                    {getServiceDisplayName(preorder.service)}
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -62,7 +80,7 @@ export const RecentPreordersTable = ({ data }: RecentPreordersTableProps) => {
       </div>
       {data.length === 0 && (
         <div className="px-6 py-4 text-center text-gray-500">
-          아직 사전예약자가 없습니다.
+          {emptyMessage}
         </div>
       )}
     </div>

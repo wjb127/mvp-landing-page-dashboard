@@ -1,14 +1,27 @@
 'use client'
 
+import { useState } from 'react'
 import { MousePointer, Users, Mail, TrendingUp, RefreshCw } from 'lucide-react'
 import { useAnalytics } from '@/hooks/useAnalytics'
 import { StatsCard } from '@/components/StatsCard'
 import { ServiceBarChart } from '@/components/ServiceBarChart'
 import { DailyTrendChart } from '@/components/DailyTrendChart'
 import { RecentPreordersTable } from '@/components/RecentPreordersTable'
+import { ServiceFilter } from '@/components/ServiceFilter'
 
 export default function Dashboard() {
-  const { loading, error, serviceStats, dailyStats, recentPreorders, refetch } = useAnalytics()
+  const [selectedService, setSelectedService] = useState('all')
+  const { loading, error, serviceStats, dailyStats, recentPreorders, refetch } = useAnalytics(selectedService)
+
+  const getServiceDisplayName = (service: string) => {
+    const serviceNames: { [key: string]: string } = {
+      'all': '전체 서비스',
+      'posture': '자세 교정',
+      'reading': '독해 훈련',
+      'worktracker': '업무 트래커'
+    }
+    return serviceNames[service] || service
+  }
 
   if (loading) {
     return (
@@ -58,7 +71,12 @@ export default function Dashboard() {
       <div className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
-            <h1 className="text-3xl font-bold text-gray-900">관리자 대시보드</h1>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">관리자 대시보드</h1>
+              <p className="text-gray-600 mt-1">
+                현재 보기: <span className="font-semibold text-blue-600">{getServiceDisplayName(selectedService)}</span>
+              </p>
+            </div>
             <button
               onClick={refetch}
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -71,6 +89,12 @@ export default function Dashboard() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* 서비스 필터 */}
+        <ServiceFilter 
+          selectedService={selectedService}
+          onServiceChange={setSelectedService}
+        />
+
         {/* 통계 카드 */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <StatsCard
@@ -106,7 +130,7 @@ export default function Dashboard() {
         </div>
 
         {/* 최근 사전예약자 테이블 */}
-        <RecentPreordersTable data={recentPreorders} />
+        <RecentPreordersTable data={recentPreorders} selectedService={selectedService} />
       </div>
     </div>
   )
