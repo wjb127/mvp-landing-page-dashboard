@@ -7,7 +7,7 @@ export interface ServiceConfig {
 
 export const SERVICES: ServiceConfig[] = [
   { 
-    value: 'posture', 
+    value: 'PosturAI', 
     label: '자세 교정', 
     color: 'bg-blue-500',
     description: '올바른 자세 유지를 위한 AI 솔루션'

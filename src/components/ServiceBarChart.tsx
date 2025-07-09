@@ -2,19 +2,13 @@
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { ServiceStats } from '@/types/database'
+import { getServiceDisplayName } from '@/lib/services'
 
 interface ServiceBarChartProps {
   data: ServiceStats[]
 }
 
-const getServiceDisplayName = (service: string) => {
-  const serviceNames: { [key: string]: string } = {
-    'posture': '자세 교정',
-    'reading': '독해 훈련',
-    'worktracker': '업무 트래커'
-  }
-  return serviceNames[service] || service
-}
+
 
 export const ServiceBarChart = ({ data }: ServiceBarChartProps) => {
   const chartData = data.map(item => ({

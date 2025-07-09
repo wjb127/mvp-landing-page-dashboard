@@ -2,20 +2,14 @@
 
 import { CheckCircle, XCircle } from 'lucide-react'
 import { Preorder } from '@/types/database'
+import { getServiceDisplayName } from '@/lib/services'
 
 interface RecentPreordersTableProps {
   data: Preorder[]
   selectedService?: string
 }
 
-const getServiceDisplayName = (service: string) => {
-  const serviceNames: { [key: string]: string } = {
-    'posture': '자세 교정',
-    'reading': '독해 훈련',
-    'worktracker': '업무 트래커'
-  }
-  return serviceNames[service] || service
-}
+
 
 export const RecentPreordersTable = ({ data, selectedService = 'all' }: RecentPreordersTableProps) => {
   const tableTitle = selectedService === 'all' 

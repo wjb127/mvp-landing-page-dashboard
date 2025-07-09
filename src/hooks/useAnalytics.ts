@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Preorder, ServiceStats, DailyStats } from '@/types/database'
+import { SERVICES } from '@/lib/services'
 
 export const useAnalytics = (selectedService: string = 'all') => {
   const [loading, setLoading] = useState(true)
@@ -32,7 +33,7 @@ export const useAnalytics = (selectedService: string = 'all') => {
 
       // 서비스별 통계 계산
       const services = selectedService === 'all' 
-        ? ['posture', 'reading', 'worktracker']
+        ? SERVICES.map(s => s.value)
         : [selectedService]
         
       const stats = services.map(service => {
