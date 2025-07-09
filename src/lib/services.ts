@@ -5,32 +5,25 @@ export interface ServiceConfig {
   description?: string
 }
 
-export const SERVICES: ServiceConfig[] = [
-  { 
-    value: 'PosturAI', 
-    label: '자세 교정', 
-    color: 'bg-blue-500',
-    description: '올바른 자세 유지를 위한 AI 솔루션'
-  },
-  { 
-    value: 'reading', 
-    label: '독해 훈련', 
-    color: 'bg-green-500',
-    description: 'AI 기반 맞춤형 영어 독해 학습'
-  },
-  { 
-    value: 'worktracker', 
-    label: '업무 트래커', 
-    color: 'bg-purple-500',
-    description: '효율적인 업무 시간 관리 도구'
-  }
-  // 새로운 서비스는 여기에 추가하면 됩니다
-  // { 
-  //   value: 'new-service', 
-  //   label: '새 서비스', 
-  //   color: 'bg-orange-500',
-  //   description: '새로운 서비스 설명'
-  // }
+// 서비스 이름을 보기 좋은 라벨로 변환하는 매핑
+const SERVICE_DISPLAY_NAMES: { [key: string]: string } = {
+  'PosturAI': '자세 교정',
+  'reading': '독해 훈련',
+  'worktracker': '업무 트래커'
+}
+
+// 서비스별 색상 매핑
+const SERVICE_COLORS = [
+  'bg-blue-500',
+  'bg-green-500', 
+  'bg-purple-500',
+  'bg-orange-500',
+  'bg-red-500',
+  'bg-yellow-500',
+  'bg-pink-500',
+  'bg-indigo-500',
+  'bg-teal-500',
+  'bg-cyan-500'
 ]
 
 export const ALL_SERVICES_OPTION = {
@@ -42,14 +35,30 @@ export const ALL_SERVICES_OPTION = {
 
 export const getServiceDisplayName = (serviceValue: string): string => {
   if (serviceValue === 'all') return ALL_SERVICES_OPTION.label
-  const service = SERVICES.find(s => s.value === serviceValue)
-  return service?.label || serviceValue
+  return SERVICE_DISPLAY_NAMES[serviceValue] || serviceValue
 }
 
-export const getServiceColor = (serviceValue: string): string => {
+export const getServiceColor = (serviceValue: string, index?: number): string => {
   if (serviceValue === 'all') return ALL_SERVICES_OPTION.color
-  const service = SERVICES.find(s => s.value === serviceValue)
-  return service?.color || 'bg-gray-400'
+  
+  // 인덱스가 있으면 해당 인덱스의 색상 사용, 없으면 기본 색상
+  if (typeof index === 'number') {
+    return SERVICE_COLORS[index % SERVICE_COLORS.length]
+  }
+  
+  return 'bg-gray-400'
 }
 
-export const getAllServiceOptions = () => [ALL_SERVICES_OPTION, ...SERVICES] 
+export const createServiceConfig = (services: string[]): ServiceConfig[] => {
+  return services.map((service, index) => ({
+    value: service,
+    label: getServiceDisplayName(service),
+    color: getServiceColor(service, index),
+    description: `${getServiceDisplayName(service)} 서비스`
+  }))
+}
+
+export const getAllServiceOptions = (availableServices: string[]) => [
+  ALL_SERVICES_OPTION, 
+  ...createServiceConfig(availableServices)
+] 

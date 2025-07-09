@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Preorder, ServiceStats, DailyStats } from '@/types/database'
-import { SERVICES } from '@/lib/services'
 
 export const useAnalytics = (selectedService: string = 'all') => {
   const [loading, setLoading] = useState(true)
@@ -9,6 +8,7 @@ export const useAnalytics = (selectedService: string = 'all') => {
   const [serviceStats, setServiceStats] = useState<ServiceStats[]>([])
   const [dailyStats, setDailyStats] = useState<DailyStats[]>([])
   const [recentPreorders, setRecentPreorders] = useState<Preorder[]>([])
+  const [availableServices, setAvailableServices] = useState<string[]>([])
 
   const fetchAnalytics = useCallback(async () => {
     try {
@@ -31,9 +31,17 @@ export const useAnalytics = (selectedService: string = 'all') => {
       if (clicksError) throw clicksError
       if (preordersError) throw preordersError
 
+      // 데이터베이스에서 실제 존재하는 서비스 목록 추출
+      const uniqueClickServices = [...new Set(clicks?.map(c => c.service).filter(Boolean) || [])]
+      const uniquePreorderServices = [...new Set(preorders?.map(p => p.service).filter(Boolean) || [])]
+      const allUniqueServices = [...new Set([...uniqueClickServices, ...uniquePreorderServices])]
+      
+      // 사용 가능한 서비스 목록 업데이트
+      setAvailableServices(allUniqueServices)
+
       // 서비스별 통계 계산
       const services = selectedService === 'all' 
-        ? SERVICES.map(s => s.value)
+        ? allUniqueServices
         : [selectedService]
         
       const stats = services.map(service => {
@@ -150,6 +158,7 @@ export const useAnalytics = (selectedService: string = 'all') => {
     serviceStats,
     dailyStats,
     recentPreorders,
+    availableServices,
     refetch: fetchAnalytics
   }
 } 

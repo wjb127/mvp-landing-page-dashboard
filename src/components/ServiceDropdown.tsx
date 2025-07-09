@@ -7,12 +7,13 @@ import { getAllServiceOptions, getServiceDisplayName, getServiceColor } from '@/
 interface ServiceDropdownProps {
   selectedService: string
   onServiceChange: (service: string) => void
+  availableServices: string[]
 }
 
-export function ServiceDropdown({ selectedService, onServiceChange }: ServiceDropdownProps) {
+export function ServiceDropdown({ selectedService, onServiceChange, availableServices }: ServiceDropdownProps) {
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
-  const serviceOptions = getAllServiceOptions()
+  const serviceOptions = getAllServiceOptions(availableServices)
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

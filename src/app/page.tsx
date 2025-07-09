@@ -13,7 +13,7 @@ import { getServiceDisplayName } from '@/lib/services'
 
 export default function Dashboard() {
   const [selectedService, setSelectedService] = useState('all')
-  const { loading, error, serviceStats, dailyStats, recentPreorders, refetch } = useAnalytics(selectedService)
+  const { loading, error, serviceStats, dailyStats, recentPreorders, availableServices, refetch } = useAnalytics(selectedService)
 
 
 
@@ -90,6 +90,7 @@ export default function Dashboard() {
                 <ServiceDropdown
           selectedService={selectedService}
           onServiceChange={setSelectedService}
+          availableServices={availableServices}
         />
 
         {/* 통계 카드 */}

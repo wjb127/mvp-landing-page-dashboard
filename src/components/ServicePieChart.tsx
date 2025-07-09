@@ -1,7 +1,7 @@
 'use client'
 
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts'
-import { SERVICES } from '@/lib/services'
+import { getServiceDisplayName, getServiceColor } from '@/lib/services'
 
 interface ServicePieChartProps {
   data: {
@@ -12,13 +12,12 @@ interface ServicePieChartProps {
 }
 
 export function ServicePieChart({ data }: ServicePieChartProps) {
-  const pieData = data.map(item => {
-    const serviceConfig = SERVICES.find(s => s.value === item.service)
+  const pieData = data.map((item, index) => {
     return {
-      name: serviceConfig?.label || item.service,
+      name: getServiceDisplayName(item.service),
       value: item.clicks,
       preorders: item.preorders,
-      color: serviceConfig?.color.replace('bg-', '') || 'gray-400'
+      color: getServiceColor(item.service, index).replace('bg-', '') || 'gray-400'
     }
   })
 

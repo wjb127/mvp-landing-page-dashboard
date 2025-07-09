@@ -4,10 +4,10 @@ import { useAnalytics } from '@/hooks/useAnalytics'
 import { ServicePieChart } from '@/components/ServicePieChart'
 import { StatsCard } from '@/components/StatsCard'
 import { Navigation } from '@/components/Navigation'
-import { SERVICES } from '@/lib/services'
+import { createServiceConfig } from '@/lib/services'
 
 export default function OverviewPage() {
-  const { serviceStats, loading, error } = useAnalytics('all')
+  const { serviceStats, availableServices, loading, error } = useAnalytics('all')
 
   if (loading) {
     return (
@@ -42,6 +42,9 @@ export default function OverviewPage() {
 
   const totalClicks = aggregatedStats.reduce((sum, item) => sum + item.clicks, 0)
   const totalPreorders = aggregatedStats.reduce((sum, item) => sum + item.preorders, 0)
+  
+  // 동적 서비스 설정 생성
+  const dynamicServices = createServiceConfig(availableServices)
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -83,7 +86,7 @@ export default function OverviewPage() {
           />
           <StatsCard
             title="서비스 수"
-            value={SERVICES.length}
+            value={availableServices.length}
             change={0}
             icon="🚀"
           />
@@ -98,7 +101,7 @@ export default function OverviewPage() {
             <h3 className="text-lg font-semibold text-gray-900 mb-4">서비스별 상세 통계</h3>
             <div className="space-y-4">
               {serviceStats.map((stat) => {
-                const service = SERVICES.find(s => s.value === stat.service)
+                const service = dynamicServices.find(s => s.value === stat.service)
                 const clickPercent = totalClicks > 0 ? (stat.clicks / totalClicks) * 100 : 0
                 const preorderPercent = totalPreorders > 0 ? (stat.preorders / totalPreorders) * 100 : 0
                 
@@ -143,7 +146,7 @@ export default function OverviewPage() {
                 {serviceStats
                   .sort((a, b) => b.clicks - a.clicks)
                   .map((stat, index) => {
-                    const service = SERVICES.find(s => s.value === stat.service)
+                    const service = dynamicServices.find(s => s.value === stat.service)
                     return (
                       <div key={stat.service} className="flex items-center justify-between p-2 bg-gray-50 rounded">
                         <div className="flex items-center gap-2">
@@ -163,7 +166,7 @@ export default function OverviewPage() {
                 {serviceStats
                   .sort((a, b) => b.preorders - a.preorders)
                   .map((stat, index) => {
-                    const service = SERVICES.find(s => s.value === stat.service)
+                    const service = dynamicServices.find(s => s.value === stat.service)
                     return (
                       <div key={stat.service} className="flex items-center justify-between p-2 bg-gray-50 rounded">
                         <div className="flex items-center gap-2">
