@@ -7,21 +7,15 @@ import { StatsCard } from '@/components/StatsCard'
 import { ServiceBarChart } from '@/components/ServiceBarChart'
 import { DailyTrendChart } from '@/components/DailyTrendChart'
 import { RecentPreordersTable } from '@/components/RecentPreordersTable'
-import { ServiceFilter } from '@/components/ServiceFilter'
+import { ServiceDropdown } from '@/components/ServiceDropdown'
+import { Navigation } from '@/components/Navigation'
+import { getServiceDisplayName } from '@/lib/services'
 
 export default function Dashboard() {
   const [selectedService, setSelectedService] = useState('all')
   const { loading, error, serviceStats, dailyStats, recentPreorders, refetch } = useAnalytics(selectedService)
 
-  const getServiceDisplayName = (service: string) => {
-    const serviceNames: { [key: string]: string } = {
-      'all': '전체 서비스',
-      'posture': '자세 교정',
-      'reading': '독해 훈련',
-      'worktracker': '업무 트래커'
-    }
-    return serviceNames[service] || service
-  }
+
 
   if (loading) {
     return (
@@ -87,10 +81,13 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+      
+      {/* 네비게이션 */}
+      <Navigation />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* 서비스 필터 */}
-        <ServiceFilter 
+                <ServiceDropdown
           selectedService={selectedService}
           onServiceChange={setSelectedService}
         />
