@@ -1,103 +1,113 @@
-import Image from "next/image";
+'use client'
 
-export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+import { MousePointer, Users, Mail, TrendingUp, RefreshCw } from 'lucide-react'
+import { useAnalytics } from '@/hooks/useAnalytics'
+import { StatsCard } from '@/components/StatsCard'
+import { ServiceBarChart } from '@/components/ServiceBarChart'
+import { DailyTrendChart } from '@/components/DailyTrendChart'
+import { RecentPreordersTable } from '@/components/RecentPreordersTable'
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+export default function Dashboard() {
+  const { loading, error, serviceStats, dailyStats, recentPreorders, refetch } = useAnalytics()
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600">데이터를 불러오는 중...</p>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">{error}</p>
+          <button 
+            onClick={refetch}
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          >
+            다시 시도
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // 전체 통계 계산
+  const totalStats = serviceStats.reduce(
+    (acc, service) => ({
+      clicks: acc.clicks + service.clicks,
+      preorders: acc.preorders + service.preorders,
+      marketingOptIns: acc.marketingOptIns + service.marketingOptIns,
+      conversionRate: 0 // 아래에서 계산
+    }),
+    { clicks: 0, preorders: 0, marketingOptIns: 0, conversionRate: 0 }
+  )
+
+  totalStats.conversionRate = totalStats.clicks > 0 
+    ? (totalStats.preorders / totalStats.clicks) * 100 
+    : 0
+
+  return (
+    <div className="min-h-screen bg-gray-100">
+      {/* 헤더 */}
+      <div className="bg-white shadow">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-6">
+            <h1 className="text-3xl font-bold text-gray-900">관리자 대시보드</h1>
+            <button
+              onClick={refetch}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              새로고침
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* 통계 카드 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <StatsCard
+            title="총 클릭 수"
+            value={totalStats.clicks.toLocaleString()}
+            icon={MousePointer}
+            color="bg-blue-500"
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
+          <StatsCard
+            title="총 사전예약 수"
+            value={totalStats.preorders.toLocaleString()}
+            icon={Users}
+            color="bg-green-500"
           />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
+          <StatsCard
+            title="마케팅 수신 동의"
+            value={totalStats.marketingOptIns.toLocaleString()}
+            icon={Mail}
+            color="bg-yellow-500"
           />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          <StatsCard
+            title="전환율"
+            value={`${totalStats.conversionRate.toFixed(1)}%`}
+            icon={TrendingUp}
+            color="bg-purple-500"
+          />
+        </div>
+
+        {/* 차트 섹션 */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          <ServiceBarChart data={serviceStats} />
+          <DailyTrendChart data={dailyStats} />
+        </div>
+
+        {/* 최근 사전예약자 테이블 */}
+        <RecentPreordersTable data={recentPreorders} />
+      </div>
     </div>
-  );
+  )
 }
